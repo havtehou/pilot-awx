@@ -8,6 +8,9 @@
     resource_group: rg-pilot-test
     gateway_name: agw-pilot-test
     backend_setting_name: backend-https-setting-3
+    backend_port: 443
+    backend_protocol: Https
+    backend_host_name: backend.internal.local
 
   tasks:
     - name: Login to Azure using Service Principal
@@ -30,9 +33,9 @@
           --resource-group {{ resource_group }} \
           --gateway-name {{ gateway_name }} \
           --name {{ backend_setting_name }} \
-          --port 443 \
-          --protocol Https \
-          --host-name backend.internal.local \
+          --port {{ backend_port }} \
+          --protocol {{ backend_protocol }} \
+          --host-name {{ backend_host_name }} \
           --timeout 30 \
           --cookie-based-affinity Disabled
       register: backend_setting_result
