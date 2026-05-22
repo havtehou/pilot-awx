@@ -1,0 +1,31 @@
+---
+- name: Create backend pool for Application Gateway
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  collections:
+    - azure.azcollection
+
+  vars:
+    resource_group: rg-pilot-test
+    appgw_name: agw-pilot-test
+
+  tasks:
+    - name: Update Application Gateway backend settings
+      azure.azcollection.azure_rm_appgateway:
+        resource_group: "{{ resource_group }}"
+        name: "{{ appgw_name }}"
+        backend_http_settings_collection:
+          - name: be-http-setting
+            port: 80
+            protocol: Http
+            cookie_based_affinity: Disabled
+            request_timeout: 30
+            pick_host_name_from_backend_address: false
+            host_name: "test-backend.havt.id.vn"
+        state: present
+      register: result
+
+    - debug:
+        var: result
