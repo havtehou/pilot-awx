@@ -1,0 +1,30 @@
+---
+- name: Create backend pool for Application Gateway
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  collections:
+    - azure.azcollection
+
+  vars:
+    - resource_group: rg-demo
+    - app_gateway_name: appgw-demo
+
+  tasks:
+    - name: Create backend address pool
+      azure.azcollection.azure_rm_appgateway:
+        resource_group: "{{ resource_group }}"
+        name: "{{ app_gateway_name }}"
+        sku:
+          name: Standard_v2
+          tier: Standard_v2
+          capacity: 2
+
+        backend_address_pools:
+          - name: backend-pool-api
+            backend_addresses:
+              - ip_address: 10.10.1.4
+              - ip_address: 10.10.1.5
+
+        state: present
