@@ -1,0 +1,113 @@
+---
+- name: Create Azure resource group, virtual network, and application gateway
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  collections:
+    - azure.azcollection
+
+  vars:
+    env: "{{ lookup('env', 'ANSIBLE_ENV') | default('dev') }}"
+    location: eastus
+    resource_group: "rg-pilot-{{ env }}"
+    vnet_name: "vnet-pilot-{{ env }}"
+    vnet_cidr: 10.0.0.0/16
+    subnet_name: "snet-pilot-{{ env }}"
+    subnet_cidr: 10.0.1.0/24
+    app_gateway_name: "agw-pilot-{{ env }}"
+    app_gateway_public_ip_name: "agw-pilot-{{ env }}-pip"
+    app_gateway_subnet_name: "snet-pilot-{{ env }}-agw"
+    app_gateway_subnet_cidr: 10.0.2.0/24
+    app_gateway_sku_name: standard_v2
+    app_gateway_sku_tier: standard_v2
+    app_gateway_capacity: 1
+    app_gateway_gateway_ip_configuration_name: appgw-gateway-ip-config
+    app_gateway_frontend_ip_configuration_name: appgw-frontend-ip-config
+    app_gateway_frontend_port_name: appgw-http-port
+    app_gateway_backend_address_pool_name: appgw-backend-pool
+    app_gateway_backend_http_settings_name: appgw-http-settings
+    app_gateway_http_listener_name: appgw-http-listener
+    app_gateway_request_routing_rule_name: appgw-http-rule
+    app_gateway_frontend_port: 80
+    app_gateway_backend_port: 80
+
+  tasks:
+    - name: Create Azure resource group
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        tags:
+          environment: "{{ env }}"
+          project: pilot
+
+    - name: Create Virtual Network
+      azure.azcollection.azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "{{ vnet_cidr }}"
+
+    - name: Create Subnet
+      azure.azcollection.azure_rm_subnet:
+        resource_group: "{{ resource_group }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "{{ subnet_cidr }}"
+        virtual_network: "{{ vnet_name }}"
+
+    - name: Create Application Gateway public IP
+      azure.azcollection.azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"
+        name: "{{ app_gateway_public_ip_name }}"
+        allocation_method: Static
+        sku: Standard
+
+    - name: Create Application Gateway subnet
+      azure.azcollection.azure_rm_subnet:
+        resource_group: "{{ resource_group }}"
+        name: "{{ app_gateway_subnet_name }}"
+        address_prefix: "{{ app_gateway_subnet_cidr }}"
+        virtual_network: "{{ vnet_name }}"
+
+    - name: Create Application Gateway
+      azure.azcollection.azure_rm_appgateway:
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
+        name: "{{ app_gateway_name }}"
+        sku:
+          name: "{{ app_gateway_sku_name }}"
+          tier: "{{ app_gateway_sku_tier }}"
+          capacity: "{{ app_gateway_capacity }}"
+        gateway_ip_configurations:
+          - name: "{{ app_gateway_gateway_ip_configuration_name }}"
+            subnet:
+              name: "{{ app_gateway_subnet_name }}"
+              virtual_network_name: "{{ vnet_name }}"
+        frontend_ip_configurations:
+          - name: "{{ app_gateway_frontend_ip_configuration_name }}"
+            public_ip_address: "{{ app_gateway_public_ip_name }}"
+        frontend_ports:
+          - name: "{{ app_gateway_frontend_port_name }}"
+            port: "{{ app_gateway_frontend_port }}"
+        backend_address_pools:
+          - name: "{{ app_gateway_backend_address_pool_name }}"
+        backend_http_settings_collection:
+          - name: "{{ app_gateway_backend_http_settings_name }}"
+            port: "{{ app_gateway_backend_port }}"
+            protocol: http
+            cookie_based_affinity: disabled
+            request_timeout: 30
+        http_listeners:
+          - name: "{{ app_gateway_http_listener_name }}"
+            protocol: http
+            frontend_ip_configuration: "{{ app_gateway_frontend_ip_configuration_name }}"
+            frontend_port: "{{ app_gateway_frontend_port_name }}"
+        request_routing_rules:
+          - name: "{{ app_gateway_request_routing_rule_name }}"
+            rule_type: basic
+            priority: 100
+            http_listener: "{{ app_gateway_http_listener_name }}"
+            backend_address_pool: "{{ app_gateway_backend_address_pool_name }}"
+            backend_http_settings: "{{ app_gateway_backend_http_settings_name }}"
+        tags:
+          environment: "{{ env }}"
+          role: application_gateway
