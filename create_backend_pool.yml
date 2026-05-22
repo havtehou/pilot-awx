@@ -8,8 +8,8 @@
     - azure.azcollection
 
   vars:
-    - resource_group: rg-demo
-    - app_gateway_name: appgw-demo
+    resource_group: rg-demo
+    app_gateway_name: appgw-demo
 
   tasks:
     - name: Create backend address pool
