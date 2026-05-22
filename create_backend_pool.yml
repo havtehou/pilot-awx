@@ -16,11 +16,6 @@
       azure.azcollection.azure_rm_appgateway:
         resource_group: "{{ resource_group }}"
         name: "{{ app_gateway_name }}"
-        sku:
-          name: Standard_v2
-          tier: Standard_v2
-          capacity: 2
-
         backend_address_pools:
           - name: backend-pool-api
             backend_addresses:
