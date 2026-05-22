@@ -1,0 +1,49 @@
+---
+- name: Validate Azure credential from AWX
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  collections:
+    - azure.azcollection
+
+  tasks:
+
+    - name: Show Azure credential environment variables
+      ansible.builtin.debug:
+        msg:
+          - "AZURE_CLIENT_ID={{ lookup('env', 'AZURE_CLIENT_ID') }}"
+          - "AZURE_TENANT={{ lookup('env', 'AZURE_TENANT') }}"
+          - "AZURE_SUBSCRIPTION_ID={{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+          - >-
+            AZURE_SECRET=***{{
+              (lookup('env', 'AZURE_SECRET') | default(''))[-4:]
+            }}
+
+    - name: Test Azure authentication and get subscriptions
+      azure.azcollection.azure_rm_subscription_info:
+      register: subscription_info
+
+    - name: Validate Azure connection
+      ansible.builtin.assert:
+        that:
+          - subscription_info.subscriptions is defined
+          - subscription_info.subscriptions | length > 0
+        fail_msg: "Cannot connect to Azure or no subscriptions found."
+        success_msg: "Azure connection successful."
+
+    - name: Show Azure subscription details
+      ansible.builtin.debug:
+        msg:
+          - "Azure credentials validated successfully."
+          - "Subscription ID: {{ subscription_info.subscriptions[0].subscription_id }}"
+          - "Tenant ID: {{ subscription_info.subscriptions[0].tenant_id }}"
+          - "Display Name: {{ subscription_info.subscriptions[0].display_name }}"
+
+    - name: Get Azure resource groups
+      azure.azcollection.azure_rm_resourcegroup_info:
+      register: rg_info
+
+    - name: Show Azure resource groups
+      ansible.builtin.debug:
+        msg: "{{ rg_info.resourcegroups | map(attribute='name') | list }}"
