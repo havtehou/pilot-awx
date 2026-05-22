@@ -20,7 +20,7 @@
           - name: be-http-setting
             port: 80
             protocol: http
-            cookie_based_affinity: Disabled
+            cookie_based_affinity: disabled
             request_timeout: 30
             pick_host_name_from_backend_address: false
             host_name: "test-backend.havt.id.vn"
