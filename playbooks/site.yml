@@ -1,0 +1,11 @@
+---
+- name: Provision Azure Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: resource_group
+    - role: vnet
+    - role: application_gateway
+    # - role: vm
+    # - role: aks

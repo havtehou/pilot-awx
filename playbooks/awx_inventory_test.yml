@@ -1,0 +1,21 @@
+---
+- name: Validate AWX inventory and targets
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Assert that AWX inventory is loaded
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname is defined
+          - groups is defined
+        fail_msg: "AWX inventory was not loaded. Make sure this playbook is launched from AWX/Tower with a valid inventory."
+
+    - name: Show inventory host and groups
+      ansible.builtin.debug:
+        msg:
+          - "Inventory host: {{ inventory_hostname }}"
+          - "Groups: {{ group_names | join(', ') }}"
+          - "All hosts count: {{ groups['all'] | length }}"
+
+    - name: Ping the AWX inventory target
+      ansible.builtin.ping:

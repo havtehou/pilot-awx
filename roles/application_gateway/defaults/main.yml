@@ -1,0 +1,22 @@
+---
+env: "{{ lookup('env', 'ANSIBLE_ENV') | default('dev') }}"
+location: eastus
+resource_group: "rg-pilot-{{ env }}"
+vnet_name: "vnet-pilot-{{ env }}"
+app_gateway_env: "{{ lookup('env', 'ANSIBLE_APP_GATEWAY_ENV') | default('test') }}"
+app_gateway_name: "agw-pilot-{{ env }}"
+app_gateway_public_ip_name: "{{ app_gateway_name }}-pip"
+app_gateway_subnet_name: "snet-pilot-{{ env }}-agw"
+app_gateway_subnet_cidr: 10.0.2.0/24
+app_gateway_sku_name: standard_v2
+app_gateway_sku_tier: standard_v2
+app_gateway_capacity: 1
+app_gateway_gateway_ip_configuration_name: appgw-gateway-ip-config
+app_gateway_frontend_ip_configuration_name: appgw-frontend-ip-config
+app_gateway_frontend_port_name: appgw-http-port
+app_gateway_backend_address_pool_name: appgw-backend-pool
+app_gateway_backend_http_settings_name: appgw-http-settings
+app_gateway_http_listener_name: appgw-http-listener
+app_gateway_request_routing_rule_name: appgw-http-rule
+app_gateway_frontend_port: 80
+app_gateway_backend_port: 80

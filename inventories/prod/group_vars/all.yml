@@ -1,0 +1,21 @@
+---
+location: eastus
+resource_group: rg-pilot-prod
+env: prod
+
+vnet_name: vnet-pilot-prod
+vnet_cidr: 10.2.0.0/16
+subnet_name: snet-pilot-prod
+subnet_cidr: 10.2.1.0/24
+
+vm_name: vm-pilot-prod
+vm_size: Standard_D2s_v3
+
+aks_cluster_name: aks-pilot-prod
+aks_dns_prefix: aks-pilot-prod
+aks_node_count: 3
+aks_node_size: Standard_DS3_v2
+
+app_gateway_name: agw-pilot-prod
+app_gateway_subnet_name: snet-pilot-prod-agw
+app_gateway_subnet_cidr: 10.2.2.0/24

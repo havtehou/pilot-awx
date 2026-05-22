@@ -1,0 +1,3 @@
+---
+vm_admin_username: azureuser
+vm_admin_password: "Password1234!" # In a real scenario, use Ansible Vault or Azure Key Vault

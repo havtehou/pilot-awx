@@ -1,0 +1,21 @@
+---
+location: eastus
+resource_group: rg-pilot-dev
+env: dev
+
+vnet_name: vnet-pilot-dev
+vnet_cidr: 10.0.0.0/16
+subnet_name: snet-pilot-dev
+subnet_cidr: 10.0.1.0/24
+
+vm_name: vm-pilot-dev
+vm_size: Standard_B1s
+
+aks_cluster_name: aks-pilot-dev
+aks_dns_prefix: aks-pilot-dev
+aks_node_count: 1
+aks_node_size: Standard_DS2_v2
+
+app_gateway_name: agw-pilot-dev
+app_gateway_subnet_name: snet-pilot-dev-agw
+app_gateway_subnet_cidr: 10.0.2.0/24

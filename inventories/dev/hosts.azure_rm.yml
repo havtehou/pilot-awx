@@ -1,0 +1,11 @@
+plugin: azure.azcollection.azure_rm
+include_vm_resource_groups:
+  - "{{ resource_group }}"
+auth_source: env
+conditional_groups:
+  web_servers: "'web' in tags.role"
+  db_servers: "'db' in tags.role"
+  aks_nodes: "'aks' in tags.role"
+keyed_groups:
+  - prefix: tag
+    key: tags

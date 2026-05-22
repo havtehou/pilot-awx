@@ -1,0 +1,2 @@
+ansible
+-r collections/ansible_collections/azure/azcollection/requirements.txt
