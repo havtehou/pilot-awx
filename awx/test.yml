@@ -1,6 +1,6 @@
 ---
-- name: Validate Azure credential from AWX
-  hosts: all
+- name: Test
+  hosts: localhost
   gather_facts: false
 
   tasks:
