@@ -1,25 +1,42 @@
 ---
-- name: Create backend pool for Application Gateway
-  hosts: all
+- name: Create Application Gateway HTTP Settings using Azure CLI
+  hosts: localhost
   connection: local
   gather_facts: false
 
-  collections:
-    - azure.azcollection
-
   vars:
-    resource_group: rg-demo
-    app_gateway_name: appgw-demo
+    resource_group: rg-pilot-test
+    gateway_name: agw-pilot-test
+    backend_setting_name: backend-https-setting-3
 
   tasks:
-    - name: Create backend address pool
-      azure.azcollection.azure_rm_appgateway:
-        resource_group: "{{ resource_group }}"
-        name: "{{ app_gateway_name }}"
-        backend_address_pools:
-          - name: backend-pool-api
-            backend_addresses:
-              - ip_address: 10.10.1.4
-              - ip_address: 10.10.1.5
+    - name: Login to Azure using Service Principal
+      ansible.builtin.shell: |
+        az login --service-principal \
+          --username "{{ lookup('env', 'AZURE_CLIENT_ID') }}" \
+          --password "{{ lookup('env', 'AZURE_SECRET') }}" \
+          --tenant "{{ lookup('env', 'AZURE_TENANT') }}"
+      register: az_login
+      changed_when: false
 
-        state: present
+    - name: Set Azure subscription
+      ansible.builtin.shell: |
+        az account set --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+      changed_when: false
+
+    - name: Create backend HTTPS setting
+      ansible.builtin.shell: |
+        az network application-gateway http-settings create \
+          --resource-group {{ resource_group }} \
+          --gateway-name {{ gateway_name }} \
+          --name {{ backend_setting_name }} \
+          --port 443 \
+          --protocol Https \
+          --host-name backend.internal.local \
+          --timeout 30 \
+          --cookie-based-affinity Disabled
+      register: backend_setting_result
+
+    - name: Show backend setting result
+      ansible.builtin.debug:
+        var: backend_setting_result.stdout
