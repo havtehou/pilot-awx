@@ -1,6 +1,6 @@
 ---
 - name: Validate Azure credential from AWX
-  hosts: localhost
+  hosts: all
   connection: local
   gather_facts: false
 
