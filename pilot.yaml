@@ -19,7 +19,7 @@
         backend_http_settings_collection:
           - name: be-http-setting
             port: 80
-            protocol: Http
+            protocol: http
             cookie_based_affinity: Disabled
             request_timeout: 30
             pick_host_name_from_backend_address: false
