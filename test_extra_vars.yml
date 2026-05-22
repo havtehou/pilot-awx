@@ -1,0 +1,25 @@
+---
+- name: Test AWX Extra Vars
+  hosts: all
+  gather_facts: false
+
+  vars:
+    default_env: dev
+
+  tasks:
+
+    - name: Show environment
+      debug:
+        msg: "Environment is {{ env | default(default_env) }}"
+
+    - name: Show application
+      debug:
+        msg: "Application name: {{ app_name | default('unknown-app') }}"
+
+    - name: Show version
+      debug:
+        msg: "Version: {{ version | default('1.0.0') }}"
+
+    - name: Show all variables
+      debug:
+        var: vars
