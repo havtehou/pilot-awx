@@ -1,0 +1,47 @@
+---
+- name: Create Application Gateway Routing Rule using Azure CLI
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: rg-pilot-test
+    gateway_name: agw-pilot-test
+
+    rule_name: rule-https-01
+    listener_name: listener-https-01
+    backend_pool_name: backend-pool-01
+    backend_http_setting_name: backend-https-setting-3
+
+    rule_priority: 100
+
+  tasks:
+    - name: Login to Azure using Service Principal
+      ansible.builtin.shell: |
+        az login --service-principal \
+          --username "{{ lookup('env', 'AZURE_CLIENT_ID') }}" \
+          --password "{{ lookup('env', 'AZURE_SECRET') }}" \
+          --tenant "{{ lookup('env', 'AZURE_TENANT') }}"
+      changed_when: false
+
+    - name: Set Azure subscription
+      ansible.builtin.shell: |
+        az account set --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+      changed_when: false
+
+    - name: Create Application Gateway Rule
+      ansible.builtin.shell: |
+        az network application-gateway rule create \
+          --resource-group {{ resource_group }} \
+          --gateway-name {{ gateway_name }} \
+          --name {{ rule_name }} \
+          --http-listener {{ listener_name }} \
+          --rule-type Basic \
+          --address-pool {{ backend_pool_name }} \
+          --http-settings {{ backend_http_setting_name }} \
+          --priority {{ rule_priority }}
+      register: rule_result
+
+    - name: Show rule result
+      ansible.builtin.debug:
+        var: rule_result.stdout
