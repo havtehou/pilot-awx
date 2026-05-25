@@ -1,5 +1,5 @@
 ---
-- name: Create Application Gateway Listener using Azure CLI
+- name: Create Application Gateway Listener
   hosts: localhost
   connection: local
   gather_facts: false
@@ -8,14 +8,13 @@
     resource_group: rg-pilot-test
     gateway_name: agw-pilot-test
 
-    listener_name: listener-https-01
-    frontend_ip_name: appGatewayFrontendIP
-    frontend_port_name: port-443
-    ssl_cert_name: ssl-cert-01
-    host_name: app.internal.local
+    listener_name: listener-http-8080
+    frontend_ip: Public
+    frontend_port: 8080
+    protocol: Http
 
   tasks:
-    - name: Login to Azure using Service Principal
+    - name: Azure login
       ansible.builtin.shell: |
         az login --service-principal \
           --username "{{ lookup('env', 'AZURE_CLIENT_ID') }}" \
@@ -23,21 +22,29 @@
           --tenant "{{ lookup('env', 'AZURE_TENANT') }}"
       changed_when: false
 
-    - name: Set Azure subscription
+    - name: Set subscription
       ansible.builtin.shell: |
         az account set --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
       changed_when: false
 
-    - name: Create HTTPS Listener
+    - name: Create frontend port if not exists
       ansible.builtin.shell: |
-        az network application-gateway http-listener create \
+        az network application-gateway frontend-port create \
+          --resource-group {{ resource_group }} \
+          --gateway-name {{ gateway_name }} \
+          --name port-{{ frontend_port }} \
+          --port {{ frontend_port }}
+      register: frontend_port_result
+
+    - name: Create listener
+      ansible.builtin.shell: |
+        az network application-gateway listener create \
           --resource-group {{ resource_group }} \
           --gateway-name {{ gateway_name }} \
           --name {{ listener_name }} \
-          --frontend-ip {{ frontend_ip_name }} \
-          --frontend-port {{ frontend_port_name }} \
-          --ssl-cert {{ ssl_cert_name }} \
-          --host-name {{ host_name }}
+          --frontend-ip {{ frontend_ip }} \
+          --frontend-port port-{{ frontend_port }} \
+          --protocol {{ protocol }}
       register: listener_result
 
     - name: Show listener result
