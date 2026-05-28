@@ -1,5 +1,5 @@
 ---
-- name: Create Application Gateway Listener
+- name: Create Application Gateway HTTP Listener using Azure CLI
   hosts: localhost
   connection: local
   gather_facts: false
@@ -7,44 +7,34 @@
   vars:
     resource_group: rg-pilot-test
     gateway_name: agw-pilot-test
-
-    listener_name: listener-http-8080
-    frontend_ip: Public
-    frontend_port: 8080
-    protocol: Http
+    listener_name: test-listener
+    frontend_port_name: appgw-http-port
+    frontend_ip_name: appgw-frontend-ip-config
 
   tasks:
-    - name: Azure login
+    - name: Login to Azure using Service Principal
       ansible.builtin.shell: |
         az login --service-principal \
           --username "{{ lookup('env', 'AZURE_CLIENT_ID') }}" \
           --password "{{ lookup('env', 'AZURE_SECRET') }}" \
           --tenant "{{ lookup('env', 'AZURE_TENANT') }}"
+      register: az_login
       changed_when: false
 
-    - name: Set subscription
+    - name: Set Azure subscription
       ansible.builtin.shell: |
-        az account set --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+        az account set \
+          --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
       changed_when: false
 
-    - name: Create frontend port if not exists
+    - name: Create HTTP Listener
       ansible.builtin.shell: |
-        az network application-gateway frontend-port create \
-          --resource-group {{ resource_group }} \
-          --gateway-name {{ gateway_name }} \
-          --name port-{{ frontend_port }} \
-          --port {{ frontend_port }}
-      register: frontend_port_result
-
-    - name: Create listener
-      ansible.builtin.shell: |
-        az network application-gateway listener create \
-          --resource-group {{ resource_group }} \
-          --gateway-name {{ gateway_name }} \
+        az network application-gateway http-listener create \
           --name {{ listener_name }} \
-          --frontend-ip {{ frontend_ip }} \
-          --frontend-port port-{{ frontend_port }} \
-          --protocol {{ protocol }}
+          --gateway-name {{ gateway_name }} \
+          --resource-group {{ resource_group }} \
+          --frontend-port {{ frontend_port_name }} \
+          --frontend-ip {{ frontend_ip_name }}
       register: listener_result
 
     - name: Show listener result
