@@ -6,10 +6,10 @@
 
   vars:
     resource_group: rg-pilot-test
-    gateway_name: agw-pilot-test
-    listener_name: test-listener
-    frontend_port_name: appgw-http-port
+    app_gateway_name: agw-pilot-test
+    listener_name: test-2
     frontend_ip_name: appgw-frontend-ip-config
+    frontend_port_name: appgw-http-port
 
   tasks:
     - name: Login to Azure using Service Principal
@@ -22,21 +22,34 @@
       changed_when: false
 
     - name: Set Azure subscription
-      ansible.builtin.shell: |
-        az account set \
-          --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+      ansible.builtin.command: >
+        az account set
+        --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
       changed_when: false
 
     - name: Create HTTP Listener
-      ansible.builtin.shell: |
-        az network application-gateway http-listener create \
-          --name {{ listener_name }} \
-          --gateway-name {{ gateway_name }} \
-          --resource-group {{ resource_group }} \
-          --frontend-port {{ frontend_port_name }} \
-          --frontend-ip {{ frontend_ip_name }}
+      ansible.builtin.command: >
+        az network application-gateway http-listener create
+        --resource-group {{ resource_group }}
+        --gateway-name {{ app_gateway_name }}
+        --name {{ listener_name }}
+        --frontend-ip {{ frontend_ip_name }}
+        --frontend-port {{ frontend_port_name }}
       register: listener_result
 
     - name: Show listener result
       ansible.builtin.debug:
         var: listener_result.stdout
+
+    - name: Verify created listener
+      ansible.builtin.command: >
+        az network application-gateway http-listener show
+        --resource-group {{ resource_group }}
+        --gateway-name {{ app_gateway_name }}
+        --name {{ listener_name }}
+      register: listener_verify
+      changed_when: false
+
+    - name: Show verified listener
+      ansible.builtin.debug:
+        var: listener_verify.stdout
