@@ -5,15 +5,14 @@
   gather_facts: false
 
   vars:
-    resource_group: rg-pilot-test
+    rresource_group: rg-pilot-test
     gateway_name: agw-pilot-test
-
-    rule_name: rule-https-01
-    listener_name: listener-https-01
-    backend_pool_name: backend-pool-01
-    backend_http_setting_name: backend-https-setting-3
-
-    rule_priority: 100
+    rule_name: test2
+    listener_name: test-http-listener-2
+    rule_type: Basic
+    backend_pool_name: appgw-backend-pool
+    http_settings_name: appgw-http-settings
+    priority: 2
 
   tasks:
     - name: Login to Azure using Service Principal
@@ -29,19 +28,19 @@
         az account set --subscription "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
       changed_when: false
 
-    - name: Create Application Gateway Rule
+    - name: Create Application Gateway Routing Rule
       ansible.builtin.shell: |
         az network application-gateway rule create \
           --resource-group {{ resource_group }} \
           --gateway-name {{ gateway_name }} \
           --name {{ rule_name }} \
           --http-listener {{ listener_name }} \
-          --rule-type Basic \
+          --rule-type {{ rule_type }} \
           --address-pool {{ backend_pool_name }} \
-          --http-settings {{ backend_http_setting_name }} \
-          --priority {{ rule_priority }}
+          --http-settings {{ http_settings_name }} \
+          --priority {{ priority }}
       register: rule_result
 
-    - name: Show rule result
+    - name: Show result
       ansible.builtin.debug:
         var: rule_result.stdout
